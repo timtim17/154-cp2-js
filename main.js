@@ -6,8 +6,8 @@
     "use strict";
     const WIDTH = 10;
 
-    // const because it shouldn't be overwriten (final), not upper because it's not constant
-    const undoStack = [];
+    let undoStack = [];
+    let redoStack = [];
 
     window.addEventListener("load", init);
 
@@ -19,19 +19,22 @@
         this makes the animation wait till the page is loaded */
         document.body.dataset.pageLoad = "";
 
-        const canvas = document.getElementsByTagName("canvas")[0];
+        let canvas = document.getElementsByTagName("canvas")[0];
         // per MDN, canvas context size must be set using the html properties width and height
-        const computedCanvas = window.getComputedStyle(canvas);
+        let computedCanvas = window.getComputedStyle(canvas);
         canvas.width = computedCanvas.width.substring(0, computedCanvas.width.length - 2);
         canvas.height = computedCanvas.height.substring(0, computedCanvas.height.length - 2);
-        const ctx = canvas.getContext("2d");
+        let ctx = canvas.getContext("2d");
         ctx.lineWidth = WIDTH;
-        const redoStack = [];
+        let undoBtn = document.getElementById("btn-undo");
+        let redoBtn = document.getElementById("btn-redo");
         let curState = null;
         let isMouseDown = false;
         canvas.addEventListener("mousedown", () => {
-            undoStack.push({ command: curState, color: "#000000", pos: [] });
-            isMouseDown = true;
+            if (curState) {
+                undoStack.push({ command: curState, color: "#000000", pos: [] });
+                isMouseDown = true;
+            }
         });
         canvas.addEventListener("mousemove", () => {
             if (isMouseDown) {
@@ -40,6 +43,9 @@
         });
         canvas.addEventListener("mouseup", () => {
             isMouseDown = false;
+            if (undoBtn.disabled) {
+                undoBtn.disabled = false;
+            }
         });
 
         document.getElementById("button-row").childNodes.forEach((node) => {
@@ -51,14 +57,26 @@
             }
         });
 
-        document.getElementById("btn-undo").addEventListener("click", () => {
+        undoBtn.addEventListener("click", () => {
             let stroke = undoStack.pop();
             redoStack.push(stroke);
+            if (redoBtn.disabled) {
+                redoBtn.disabled = false;
+            }
+            if (undoStack.length === 1) {    // don't undo the initial canvas clear
+                undoBtn.disabled = true;
+            }
         });
 
-        document.getElementById("btn-redo").addEventListener("click", () => {
+        redoBtn.addEventListener("click", () => {
             let stroke = redoStack.pop();
             undoStack.push(stroke);
+            if (redoStack.length === 0) {
+                redoBtn.disabled = true;
+            }
+            if (undoBtn.disabled) {
+                undoBtn.disabled = false;
+            }
         });
 
         document.getElementById("btn-fill").addEventListener("click", clear);   // todo: add color
@@ -94,6 +112,8 @@
      * 
      */
     function clear() {
+        redoStack = [];
+        document.getElementById("btn-redo").disabled = true;
         undoStack.push({ command: "fill", color: "#ffffff" });
     }
 
@@ -102,7 +122,7 @@
      * @param {*} mouseEvent 
      */
     function getMousePos(canvas, mouseEvent) {
-        const canvasOffest = { x: canvas.offsetLeft, y: canvas.offsetTop };
+        let canvasOffest = { x: canvas.offsetLeft, y: canvas.offsetTop };
         return {
             x: mouseEvent.clientX - canvasOffest.x - 10,
             y: mouseEvent.clientY - canvasOffest.y - 10
