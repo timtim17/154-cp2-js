@@ -90,7 +90,9 @@
     }
 
     /**
-     * 
+     * Renders all of the strokes onto the canvas.
+     *
+     * @param {CanvasRenderingContext2D} ctx - The context for the canvas
      */
     function render(ctx) {
         for (let stroke of undoStack) {
@@ -109,7 +111,9 @@
     }
 
     /**
-     * 
+     * Clears the canvas. As a side-effect, also clears the redo
+     * buffer and disables the redo button - once we clear the canvas
+     * we assume that the user no longer wants to redo.
      */
     function clear() {
         redoStack = [];
@@ -118,8 +122,12 @@
     }
 
     /**
+     * Given a canvas and a mouse move event, finds the position of the center of the cursor
+     * realtive to the canvas.
      * 
-     * @param {*} mouseEvent 
+     * @param {HTMLElement} canvas - The canvas to get the mouse cursor relative to
+     * @param {MouseEvent} mouseEvent - The mouse event that holds cursor data
+     * @returns {Object} The position of the center of the cursor relative to the canvas.
      */
     function getMousePos(canvas, mouseEvent) {
         let canvasOffest = { x: canvas.offsetLeft, y: canvas.offsetTop };
