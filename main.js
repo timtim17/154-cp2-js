@@ -47,8 +47,8 @@
         let ctx = canvas.getContext("2d");
         ctx.lineWidth = WIDTH;
 
-        let undoBtn = document.getElementById("btn-undo");
-        let redoBtn = document.getElementById("btn-redo");
+        let undoBtn = id("btn-undo");
+        let redoBtn = id("btn-redo");
 
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mousemove", (event) => {
@@ -57,16 +57,16 @@
         canvas.addEventListener("mouseup", () => {
             onMouseUp(undoBtn);
         });
-        document.getElementById("button-row").childNodes.forEach(setupBtnListeners);
+        id("button-row").childNodes.forEach(setupBtnListeners);
         undoBtn.addEventListener("click", () => {
             onUndoClick(undoBtn, redoBtn);
         });
         redoBtn.addEventListener("click", () => {
             onRedoClick(undoBtn, redoBtn);
         });
-        document.getElementById("btn-fill").addEventListener("click", clear);   // todo: add color
-        // document.getElementById("btn-sticker").addEventListener("click", sticker);
-        document.getElementById("btn-save").addEventListener("click", () => {
+        id("btn-fill").addEventListener("click", clear);   // todo: add color
+        // id("btn-sticker").addEventListener("click", sticker);
+        id("btn-save").addEventListener("click", () => {
             save(canvas);
         });
 
@@ -211,7 +211,7 @@
             node.addEventListener("click", () => {
                 if (curState) {
                     // if there is currently a tool selected, remove the selected attr from it
-                    document.getElementById("btn-" + curState).dataset.selected = false;
+                    id("btn-" + curState).dataset.selected = false;
                 }
                 curState = stateName;
                 node.dataset.selected = true;
@@ -340,7 +340,7 @@
      */
     function clear() {
         redoStack = [];
-        document.getElementById("btn-redo").disabled = true;
+        id("btn-redo").disabled = true;
         undoStack.push(createNewStroke("fill", backgroundColor));
     }
 
@@ -396,9 +396,41 @@
      *
      * @param {Object} pos1 - The first point
      * @param {Object} pos2 - The second point
-     * @return {float} The distance between the two points
+     * @return {Number} The distance between the two points
      */
     function distance(pos1, pos2) {
         return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
+    }
+
+    /* CSE 154 SHORTCUT FUNCTIONS */
+
+    /**
+     * Returns the DOM element with the given id.
+     *
+     * @param {string} idName - The id to search for
+     * @returns {HTMLElement} The element with that id
+     */
+    function id(idName) {
+        return document.getElementById(idName);
+    }
+
+    /**
+     * Returns the first element in the DOM tree that matches the given selector.
+     * 
+     * @param {string} selector - The selector to search with
+     * @returns {HTMLELement} The first element in the DOM that matches that selector
+     */
+    function qs(selector) {
+        return document.querySelector(selector);
+    }
+
+    /**
+     * Returns all the elements in the DOM that match the given selector.
+     *
+     * @param {string} selector - The selector to search with
+     * @returns {HTMLELement[]} All elements in the DOM that match that selector
+     */
+    function qsa(selector) {
+        return document.querySelectorAll(selector);
     }
 })();
