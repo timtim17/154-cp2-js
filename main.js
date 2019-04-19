@@ -413,24 +413,4 @@
     function id(idName) {
         return document.getElementById(idName);
     }
-
-    /**
-     * Returns the first element in the DOM tree that matches the given selector.
-     * 
-     * @param {string} selector - The selector to search with
-     * @returns {HTMLELement} The first element in the DOM that matches that selector
-     */
-    function qs(selector) {
-        return document.querySelector(selector);
-    }
-
-    /**
-     * Returns all the elements in the DOM that match the given selector.
-     *
-     * @param {string} selector - The selector to search with
-     * @returns {HTMLELement[]} All elements in the DOM that match that selector
-     */
-    function qsa(selector) {
-        return document.querySelectorAll(selector);
-    }
 })();
