@@ -15,6 +15,7 @@
     let redoStack = [];
     let curState = null;
     let isMouseDown = false;
+    let backgroundColor = "#ffffff";
 
     window.addEventListener("load", init);
 

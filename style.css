@@ -2,7 +2,7 @@
     Austin Jenchi
     CSE 154 AQ 19sp
 */
-@import url('https://fonts.googleapis.com/css?family=Finger+Paint');
+@import url('https://fonts.googleapis.com/css?family=Finger+Paint|Source+Sans+Pro');
 
 body {
     align-items: center;
@@ -10,7 +10,10 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    font-family: 'Finger Paint', cursive;
+}
+
+body, button {
+    font-family: "Source Sans Pro", sans-serif;
 }
 
 canvas {
@@ -24,6 +27,7 @@ canvas {
 
 h1 {
     font-size: 3em;
+    font-family: 'Finger Paint', cursive;
 }
 
 main {
@@ -43,31 +47,44 @@ body:not([data-page-load="page-rendering"]) main {
     opacity: 0;
 }
 
-#canvas-container {
-    align-items: center;
-    display: flex;
-}
-
 #button-row {
     display: inline-block;
     margin-top: 8px;
 }
 
 #button-row button {
+    background: none;
+    border: solid 5px purple;
+    border-radius: 10px;
     height: 70px;
+    font-size: 0.7em;
     margin: 0 4px;
+    transition: border-color 500ms ease, background-color 500ms ease;
     width: 70px;
+}
+
+#button-row button:not([disabled]):hover {
+    border-color: green;
+}
+
+#button-row button[data-selected="true"] { /* tool selected styles */
+    border-color: red;
 }
 
 /* this selector has to be ultra specific so that it overrides the style above */
 #button-row button#btn-save {
     display: block;
+    font-size: 1.2em;
     margin-top: 4px;
+    text-transform: uppercase;
     width: 99%;
 }
 
-button[data-selected="true"] { /* tool selected styles */
-    border: 5px solid red;
+#button-row button[disabled] {
+    background: #333333;
+    border-color: #222222;
+    color: white;
+    cursor: not-allowed;
 }
 
 @keyframes centerMove {
