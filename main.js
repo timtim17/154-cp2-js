@@ -1,6 +1,11 @@
 /**
  * @author Austin Jenchi
  * CSE 154 AQ 19sp
+ * @date 04-18-2019
+ * Javascript to control the functionality of the paint applications.
+ * Adds interactivity to the canvas so that it can be drawn on, as well as the
+ * buttons for changing the status of the drawing tool. Keeps track of undo and redo,
+ * as well as individual strokes so that they can be removed and redone in order.
  */
 (function() {
     "use strict";
@@ -17,12 +22,16 @@
      * Run once the page loads.
      */
     function init() {
-        /* remove the page-rendering id so that the css knows that the page is done loading
-        this makes the animation wait till the page is loaded */
+        /* remove the page-rendering data attr so that the css knows that the page is done loading
+        this makes the animation wait till the page is loaded, so that it actually renders the
+        whole thing (if the animation starts during page load the element isn't visible for
+        half the animation) */
         document.body.dataset.pageLoad = "";
 
         let canvas = document.getElementsByTagName("canvas")[0];
         // per MDN, canvas context size must be set using the html properties width and height
+        // using javascript and computed styles because the canvas size is relative to the viewport
+        // width
         let computedCanvas = window.getComputedStyle(canvas);
         canvas.width = computedCanvas.width.substring(0, computedCanvas.width.length - 2);
         canvas.height = computedCanvas.height.substring(0, computedCanvas.height.length - 2);
@@ -87,9 +96,7 @@
      */
     function onMouseUp(undoBtn) {
         isMouseDown = false;
-        if (undoBtn.disabled) {
-            undoBtn.disabled = false;
-        }
+        setButtonDisableStatus(undoBtn, false);
     }
 
     /**
@@ -118,11 +125,9 @@
     function onUndoClick(undoBtn, redoBtn) {
         let stroke = undoStack.pop();
         redoStack.push(stroke);
-        if (redoBtn.disabled) {
-            redoBtn.disabled = false;
-        }
+        setButtonDisableStatus(redoBtn, false);
         if (undoStack.length === 1) {    // don't undo the initial canvas clear
-            undoBtn.disabled = true;
+            setButtonDisableStatus(undoBtn, true);
         }
     }
 
@@ -138,10 +143,20 @@
         let stroke = redoStack.pop();
         undoStack.push(stroke);
         if (redoStack.length === 0) {
-            redoBtn.disabled = true;
+            setButtonDisableStatus(redoBtn, true);
         }
-        if (undoBtn.disabled) {
-            undoBtn.disabled = false;
+        setButtonDisableStatus(undoBtn, false);
+    }
+
+    /**
+     * Sets the disabled state of the given button.
+     *
+     * @param {HTMLElement} button - The button to change the state on
+     * @param {boolean} disabled - Whether or not the button should be disabled
+     */
+    function setButtonDisableStatus(button, disabled) {
+        if ((button.disabled && !disabled) || (!button.disabled && disabled)) {
+            button.disabled = disabled;
         }
     }
 
