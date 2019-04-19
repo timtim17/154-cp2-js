@@ -25,6 +25,66 @@
                 </canvas>
             </section>
 
+            <aside>
+                <h2>Paint</h2>
+                <p>
+                    Click and hold as you move around the canvas to paint.
+                </p>
+
+                <h2>Fill</h2>
+                <p>
+                    Fills the entire canvas.
+                </p>
+
+                <h2>Rect</h2>
+                <p>
+                    Draws a rectangle. Click once to set a corner, then click again
+                    somewhere else for another point.
+                </p>
+
+                <h2>Line</h2>
+                <p>
+                    Draws a line. Click once to set one endpoint, then again to finish.
+                </p>
+
+                <h2>Freeform</h2>
+                <p>
+                    Draws a freeform shape. Draw anywhere on the canvas like the Paint tool,
+                    and the shape you draw will be closed automatically.
+                </p>
+
+                <h2>Erase</h2>
+                <p>
+                    "Draw" anywhere on the canvas like Paint, except you erase instead.
+                </p>
+
+                <h2>DelStroke</h2>
+                <p>
+                    Click anywhere on the canvas, and the tool will erase the entirety of any stroke
+                    near where you click. Caution: a little temperamental on undo and redo.
+                </p>
+
+                <h2>Undo</h2>
+                <p>
+                    Undoes the last stroke.
+                </p>
+
+                <h2>Redo</h2>
+                <p>
+                    Redoes the last stroke.
+                </p>
+
+                <h2>Sticker</h2>
+                <p>
+                    Allows you to add stickers to the Canvas.
+                </p>
+
+                <h2>Save</h2>
+                <p>
+                    Saves your piece of art to a png file.
+                </p>
+            </aside>
+
             <section id="button-row">
                 <button type="button" id="btn-paint">Paint</button>
                 <button type="button" id="btn-fill" data-state-change="no">Fill</button>
@@ -35,7 +95,7 @@
                 <button type="button" id="btn-delstroke">DelStroke</button>
                 <button type="button" id="btn-undo" data-state-change="no" disabled>Undo</button>
                 <button type="button" id="btn-redo" data-state-change="no" disabled>Redo</button>
-                <button type="button" id="btn-clear" data-state-change="no">Clear</button>
+                <button type="button" id="btn-sticker" disabled>Sticker</button>
                 <button type="button" id="btn-save" data-state-change="no">Save</button>
             </section>
         </main>

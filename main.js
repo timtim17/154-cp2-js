@@ -65,7 +65,7 @@
             onRedoClick(undoBtn, redoBtn);
         });
         document.getElementById("btn-fill").addEventListener("click", clear);   // todo: add color
-        document.getElementById("btn-clear").addEventListener("click", clear);
+        // document.getElementById("btn-sticker").addEventListener("click", sticker);
         document.getElementById("btn-save").addEventListener("click", () => {
             save(canvas);
         });
