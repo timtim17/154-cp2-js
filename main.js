@@ -280,7 +280,7 @@
         let canvasOffset = { x: canvas.offsetLeft, y: canvas.offsetTop };
         return {
             x: mouseEvent.clientX - canvasOffset.x - 10,
-            y: mouseEvent.clientY - canvasOffset.y - 2
+            y: mouseEvent.clientY - canvasOffset.y - 10
         };
     }
 
