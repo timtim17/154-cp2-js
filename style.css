@@ -26,6 +26,7 @@ canvas {
 h1 {
     font-size: 3em;
     font-family: 'Finger Paint', cursive;
+    margin-bottom: 8px;
 }
 
 main {

@@ -66,6 +66,9 @@
         });
         document.getElementById("btn-fill").addEventListener("click", clear);   // todo: add color
         document.getElementById("btn-clear").addEventListener("click", clear);
+        document.getElementById("btn-save").addEventListener("click", () => {
+            save(canvas);
+        });
 
         clear();
         setInterval(() => {
@@ -187,10 +190,12 @@
      * @param {HTMLElement} undoBtn - A reference to the undo button
      */
     function onMouseUp(undoBtn) {
-        if (curState === "paint" || curState === "freeform" || curState === "erase") {
-            isMouseDown = false;
+        if (curState) {
+            if (curState === "paint" || curState === "freeform" || curState === "erase") {
+                isMouseDown = false;
+            }
+            setButtonDisableStatus(undoBtn, false);
         }
-        setButtonDisableStatus(undoBtn, false);
     }
 
     /**
@@ -337,6 +342,21 @@
         redoStack = [];
         document.getElementById("btn-redo").disabled = true;
         undoStack.push(createNewStroke("fill", backgroundColor));
+    }
+
+    /**
+     * Saves the given canvas to a PNG file and starts a download.
+     *
+     * @param {HTMLElement} canvas - The canvas to save
+     */
+    function save(canvas) {
+        let dataURL = canvas.toDataURL();
+        // force a download by clicking a non-existant <a> tag
+        // https://stackoverflow.com/a/45905238/1108513
+        let downloadAnchor = document.createElement("a");
+        downloadAnchor.href = dataURL;
+        downloadAnchor.download = "art.png";
+        downloadAnchor.click();
     }
 
     /**
