@@ -9,6 +9,13 @@
  */
 (function() {
     "use strict";
+    /**
+     * The max distance a stroke can be from the center of the cursor and still be deleted
+     */
+    const DELSTROKE_TOLERANCE = 15 / 2;
+    /**
+     * The width of a stroke.
+     */
     const WIDTH = 10;
 
     let undoStack = [];
@@ -38,6 +45,7 @@
         canvas.width = computedCanvas.width.substring(0, computedCanvas.width.length - 2);
         canvas.height = computedCanvas.height.substring(0, computedCanvas.height.length - 2);
         let ctx = canvas.getContext("2d");
+        ctx.lineWidth = WIDTH;
 
         let undoBtn = document.getElementById("btn-undo");
         let redoBtn = document.getElementById("btn-redo");
@@ -93,6 +101,59 @@
                     undoStack.push(createNewStroke(curState, "#000000",
                                     [mousePos, mousePos]));
                     isMouseDown = true;
+                }
+            } else if (curState === "delstroke") {
+                // delete stroke tool
+                // finds any strokes near the given position and deletes them from rendering
+
+                // step 1: find the most recent fill
+                // we only want to delete strokes that are visible, and any strokes before a
+                // fill are not.
+
+                // personally i would use a for loop from length-1 to 0, breaking at a fill,
+                // but per style guide 6.2 break is not allowed
+                let lastFillIdx = undoStack.length - 1;
+                while (lastFillIdx > 0 && undoStack[lastFillIdx].command !== "fill") {
+                    lastFillIdx--;
+                }
+                // now lastFillIdx is definitely the index of a fill. since the first command
+                // is a fill, even if we hit index 0 our first command is a fill
+
+                // step 2: from that index to length check each stroke for proximity to current
+                // mouse pos
+                let undoneStrokes = [];
+                for (let i = lastFillIdx + 1; i < undoStack.length; i++) {
+                    let stroke = undoStack[i];
+                    if (stroke.command === "paint" || stroke.command === "freeform") {
+                        // would use a for loop and break on delete but break is banned
+                        let j = 0;
+                        let deleted = false;
+                        while (j < stroke.pos.length && !deleted) {
+                            let pos = stroke.pos[j];
+                            if (distance(pos, mousePos) < DELSTROKE_TOLERANCE) {
+                                // i-- because after the deletion indexes shift over
+                                undoneStrokes.push(undoStack.splice(i--, 1)[0]);
+                                deleted = true;
+                            }
+                            j++;
+                        }
+                    } else if (stroke.command === "line" || stroke.command === "rect") {
+                        let xMin = Math.min(stroke.pos[0].x, stroke.pos[1].x) - DELSTROKE_TOLERANCE;
+                        let xMax = Math.max(stroke.pos[0].x, stroke.pos[1].x) + DELSTROKE_TOLERANCE;
+                        let yMin = Math.min(stroke.pos[0].y, stroke.pos[1].y) - DELSTROKE_TOLERANCE;
+                        let yMax = Math.max(stroke.pos[0].y, stroke.pos[1].y) + DELSTROKE_TOLERANCE;
+                        if (mousePos.x >= xMin && mousePos.x <= xMax && mousePos.y >= yMin &&
+                                mousePos.y <= yMax) {
+                            undoneStrokes.push(undoStack.splice(i--, 1)[0]);
+                        }
+                    }
+                }
+
+                // step 3: pack all of those undone strokes into a single command to undo
+                if (undoneStrokes.length > 0) {
+                    let bundle = createNewStroke("delstroke", null);
+                    bundle.strokes = undoneStrokes;
+                    undoStack.push(bundle);
                 }
             }
         }
@@ -162,6 +223,11 @@
      */
     function onUndoClick(undoBtn, redoBtn) {
         let stroke = undoStack.pop();
+        if (stroke.command === "delstroke") {
+            stroke.strokes.forEach((stroke) => {
+                undoStack.push(stroke);
+            });
+        }
         redoStack.push(stroke);
         setButtonDisableStatus(redoBtn, false);
         if (undoStack.length === 1) {    // don't undo the initial canvas clear
@@ -179,6 +245,11 @@
      */
     function onRedoClick(undoBtn, redoBtn) {
         let stroke = redoStack.pop();
+        if (stroke.command === "delstroke") {
+            stroke.strokes.forEach((stroke) => {
+                undoStack.splice(undoStack.indexOf(stroke), 1);
+            });
+        }
         undoStack.push(stroke);
         if (redoStack.length === 0) {
             setButtonDisableStatus(redoBtn, true);
@@ -245,7 +316,7 @@
         }
 
         // draw helper - small circle to help indicate where it will erase
-        if (curState === "erase") {
+        if (curState === "erase" || curState === "delstroke") {
             ctx.strokeStyle = "#666666";
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 2]);
@@ -295,5 +366,17 @@
      */
     function createNewStroke(command, color, pos=null) {
         return { command: command, color: color, pos: pos };
+    }
+
+    /**
+     * Given two objects with x and y coordinates, returns the distance between the two
+     * points.
+     *
+     * @param {Object} pos1 - The first point
+     * @param {Object} pos2 - The second point
+     * @return {float} The distance between the two points
+     */
+    function distance(pos1, pos2) {
+        return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
     }
 })();
