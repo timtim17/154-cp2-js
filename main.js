@@ -76,21 +76,24 @@
      */
     function onMouseDown(event, canvas) {
         if (curState) {
-            if (curState === "paint") {
+            if (curState === "paint" || curState === "freeform") {
+                // hold mouse down to draw tools
                 undoStack.push(createNewStroke(curState, "#000000", []));
                 isMouseDown = true;
-            } else if (curState === "rect") {
+            } else if (curState === "rect" || curState === "line") {
+                // two point shape tools
                 let lastStroke = undoStack[undoStack.length  - 1];
                 let mousePos = getMousePos(canvas, event);
-                if (lastStroke.command === "rect" && !lastStroke.done) {
-                    // setting 2nd point of a rect in progress
+                if ((lastStroke.command === "rect" || lastStroke.command === "line") &&
+                        !lastStroke.done) {
+                    // setting 2nd point of a shape in progress
                     lastStroke.pos[1] = mousePos;
                     // retroactively add another attribute to the stroke
-                    // to track if the rect is final
+                    // to track if the shape is final
                     lastStroke.done = true;
                     // end the stroke here
                     isMouseDown = false;
-                } else {    // starting a new rect
+                } else {    // starting a new shape
                     undoStack.push(createNewStroke(curState, "#000000",
                                     [mousePos, mousePos]));
                     isMouseDown = true;
@@ -109,9 +112,9 @@
     function onMouseMove(event, canvas) {
         if (isMouseDown) {
             let lastStroke = undoStack[undoStack.length - 1];
-            if (curState === "paint") {
+            if (curState === "paint" || curState === "freeform") {
                 lastStroke.pos.push(getMousePos(canvas, event));
-            } else if (curState === "rect" && !lastStroke.done) {
+            } else if ((curState === "rect" || curState === "line") && !lastStroke.done) {
                 // constantly set the second pos for the render function to show the user
                 // where the rectangle would be. this isn't final until the second mouse down
                 lastStroke.pos[1] = getMousePos(canvas, event);
@@ -126,7 +129,7 @@
      * @param {HTMLElement} undoBtn - A reference to the undo button
      */
     function onMouseUp(undoBtn) {
-        if (curState === "paint") {
+        if (curState === "paint" || curState === "freeform") {
             isMouseDown = false;
         }
         setButtonDisableStatus(undoBtn, false);
@@ -205,11 +208,14 @@
      */
     function render(ctx) {
         for (let stroke of undoStack) {
-            if (stroke.command === "paint") {
+            if (stroke.command === "paint" || stroke.command === "freeform") {
                 ctx.strokeStyle = stroke.color;
                 ctx.beginPath();
                 for (let pos of stroke.pos) {
                     ctx.lineTo(pos.x, pos.y);
+                }
+                if (stroke.command === "freeform") {
+                    ctx.closePath();
                 }
                 ctx.stroke();
             } else if (stroke.command === "fill") {
@@ -222,6 +228,12 @@
                 let width = stroke.pos[1].x - x;
                 let height = stroke.pos[1].y - y;
                 ctx.fillRect(x, y, width, height);
+            } else if (stroke.command === "line") {
+                ctx.strokeStyle = stroke.color;
+                ctx.beginPath();
+                ctx.moveTo(stroke.pos[0].x, stroke.pos[0].y);
+                ctx.lineTo(stroke.pos[1].x, stroke.pos[1].y);
+                ctx.stroke();
             }
         }
     }
