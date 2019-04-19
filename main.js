@@ -16,6 +16,7 @@
     let curState = null;
     let isMouseDown = false;
     let backgroundColor = "#ffffff";
+    let mousePos = undefined;
 
     window.addEventListener("load", init);
 
@@ -37,14 +38,11 @@
         canvas.width = computedCanvas.width.substring(0, computedCanvas.width.length - 2);
         canvas.height = computedCanvas.height.substring(0, computedCanvas.height.length - 2);
         let ctx = canvas.getContext("2d");
-        ctx.lineWidth = WIDTH;
 
         let undoBtn = document.getElementById("btn-undo");
         let redoBtn = document.getElementById("btn-redo");
 
-        canvas.addEventListener("mousedown", () => {
-            onMouseDown(event, canvas);
-        });
+        canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mousemove", (event) => {
             onMouseMove(event, canvas);
         });
@@ -71,20 +69,17 @@
      * Event handler to handle mouse down events. Starts a new stroke
      * and changes state so that {@link onMouseMove} starts recording
      * cursor positions.
-     *
-     * @param {MouseEvent} event - The event from the event listener containing mouse data
-     * @param {HTMLElement} canvas - The canvas the user is drawing on
      */
-    function onMouseDown(event, canvas) {
+    function onMouseDown() {
         if (curState) {
-            if (curState === "paint" || curState === "freeform") {
+            if (curState === "paint" || curState === "freeform" || curState === "erase") {
                 // hold mouse down to draw tools
+                // color is ignored in the case of erase
                 undoStack.push(createNewStroke(curState, "#000000", []));
                 isMouseDown = true;
             } else if (curState === "rect" || curState === "line") {
                 // two point shape tools
                 let lastStroke = undoStack[undoStack.length  - 1];
-                let mousePos = getMousePos(canvas, event);
                 if ((lastStroke.command === "rect" || lastStroke.command === "line") &&
                         !lastStroke.done) {
                     // setting 2nd point of a shape in progress
@@ -111,14 +106,15 @@
      * @param {HTMLElement} canvas - The canvas the user is drawing on
      */
     function onMouseMove(event, canvas) {
+        mousePos = getMousePos(canvas, event);
         if (isMouseDown) {
             let lastStroke = undoStack[undoStack.length - 1];
-            if (curState === "paint" || curState === "freeform") {
-                lastStroke.pos.push(getMousePos(canvas, event));
+            if (curState === "paint" || curState === "freeform" || curState === "erase") {
+                lastStroke.pos.push(mousePos);
             } else if ((curState === "rect" || curState === "line") && !lastStroke.done) {
                 // constantly set the second pos for the render function to show the user
                 // where the rectangle would be. this isn't final until the second mouse down
-                lastStroke.pos[1] = getMousePos(canvas, event);
+                lastStroke.pos[1] = mousePos;
             }
         }
     }
@@ -130,7 +126,7 @@
      * @param {HTMLElement} undoBtn - A reference to the undo button
      */
     function onMouseUp(undoBtn) {
-        if (curState === "paint" || curState === "freeform") {
+        if (curState === "paint" || curState === "freeform" || curState === "erase") {
             isMouseDown = false;
         }
         setButtonDisableStatus(undoBtn, false);
@@ -235,7 +231,29 @@
                 ctx.moveTo(stroke.pos[0].x, stroke.pos[0].y);
                 ctx.lineTo(stroke.pos[1].x, stroke.pos[1].y);
                 ctx.stroke();
+            } else if (stroke.command === "erase") {
+                // special case for eraser so that it erases the entirety of a
+                // circular region instead of just the line, as it's a weird
+                // and unpredictable shape.
+                ctx.fillStyle = backgroundColor;
+                for (let pos of stroke.pos) {
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, WIDTH, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
             }
+        }
+
+        // draw helper - small circle to help indicate where it will erase
+        if (curState === "erase") {
+            ctx.strokeStyle = "#666666";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 2]);
+            ctx.beginPath();
+            ctx.arc(mousePos.x, mousePos.y, WIDTH, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.lineWidth = WIDTH;
+            ctx.setLineDash([]);
         }
     }
 
@@ -247,7 +265,7 @@
     function clear() {
         redoStack = [];
         document.getElementById("btn-redo").disabled = true;
-        undoStack.push(createNewStroke("fill", "#ffffff"));
+        undoStack.push(createNewStroke("fill", backgroundColor));
     }
 
     /**
@@ -262,7 +280,7 @@
         let canvasOffset = { x: canvas.offsetLeft, y: canvas.offsetTop };
         return {
             x: mouseEvent.clientX - canvasOffset.x - 10,
-            y: mouseEvent.clientY - canvasOffset.y - 10
+            y: mouseEvent.clientY - canvasOffset.y - 2
         };
     }
 

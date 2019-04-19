@@ -18,9 +18,7 @@ body, button {
 
 canvas {
     border: 10px groove brown;
-    /* typically a spinning wheel or other circle...
-    decent for a position cursor + pranks your ta :P */
-    cursor: wait;
+    cursor: crosshair;
     height: 33.75vw;   /* proportion so that it's scaled down 1920x1080 */
     width: 60vw;
 }
