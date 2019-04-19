@@ -41,9 +41,11 @@
         let undoBtn = document.getElementById("btn-undo");
         let redoBtn = document.getElementById("btn-redo");
 
-        canvas.addEventListener("mousedown", onMouseDown);
-        canvas.addEventListener("mousemove", () => {
-            onMouseMove(canvas);
+        canvas.addEventListener("mousedown", () => {
+            onMouseDown(event, canvas);
+        });
+        canvas.addEventListener("mousemove", (event) => {
+            onMouseMove(event, canvas);
         });
         canvas.addEventListener("mouseup", () => {
             onMouseUp(undoBtn);
@@ -68,11 +70,32 @@
      * Event handler to handle mouse down events. Starts a new stroke
      * and changes state so that {@link onMouseMove} starts recording
      * cursor positions.
+     *
+     * @param {MouseEvent} event - The event from the event listener containing mouse data
+     * @param {HTMLElement} canvas - The canvas the user is drawing on
      */
-    function onMouseDown() {
+    function onMouseDown(event, canvas) {
         if (curState) {
-            undoStack.push(createNewStroke(curState, "#000000", []));
-            isMouseDown = true;
+            if (curState === "paint") {
+                undoStack.push(createNewStroke(curState, "#000000", []));
+                isMouseDown = true;
+            } else if (curState === "rect") {
+                let lastStroke = undoStack[undoStack.length  - 1];
+                let mousePos = getMousePos(canvas, event);
+                if (lastStroke.command === "rect" && !lastStroke.done) {
+                    // setting 2nd point of a rect in progress
+                    lastStroke.pos[1] = mousePos;
+                    // retroactively add another attribute to the stroke
+                    // to track if the rect is final
+                    lastStroke.done = true;
+                    // end the stroke here
+                    isMouseDown = false;
+                } else {    // starting a new rect
+                    undoStack.push(createNewStroke(curState, "#000000",
+                                    [mousePos, mousePos]));
+                    isMouseDown = true;
+                }
+            }
         }
     }
 
@@ -80,11 +103,19 @@
      * Event handler to handle mouse move events. Records cursor positions
      * on the canvas if we are currently making a stroke.
      *
+     * @param {MouseEvent} event - The event from the event listener containing mouse data
      * @param {HTMLElement} canvas - The canvas the user is drawing on
      */
-    function onMouseMove(canvas) {
+    function onMouseMove(event, canvas) {
         if (isMouseDown) {
-            undoStack[undoStack.length - 1].pos.push(getMousePos(canvas, event));
+            let lastStroke = undoStack[undoStack.length - 1];
+            if (curState === "paint") {
+                lastStroke.pos.push(getMousePos(canvas, event));
+            } else if (curState === "rect" && !lastStroke.done) {
+                // constantly set the second pos for the render function to show the user
+                // where the rectangle would be. this isn't final until the second mouse down
+                lastStroke.pos[1] = getMousePos(canvas, event);
+            }
         }
     }
 
@@ -95,7 +126,9 @@
      * @param {HTMLElement} undoBtn - A reference to the undo button
      */
     function onMouseUp(undoBtn) {
-        isMouseDown = false;
+        if (curState === "paint") {
+            isMouseDown = false;
+        }
         setButtonDisableStatus(undoBtn, false);
     }
 
@@ -110,7 +143,12 @@
         if (node.nodeName === "BUTTON" && node.dataset.stateChange !== "no") {
             const stateName = node.id.substring(4);   // btn- is 4 chars.
             node.addEventListener("click", () => {
+                if (curState) {
+                    // if there is currently a tool selected, remove the selected attr from it
+                    document.getElementById("btn-" + curState).dataset.selected = false;
+                }
                 curState = stateName;
+                node.dataset.selected = true;
             });
         }
     }
@@ -177,6 +215,13 @@
             } else if (stroke.command === "fill") {
                 ctx.fillStyle = stroke.color;
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            } else if (stroke.command === "rect") {
+                ctx.fillStyle = stroke.color;
+                let x = stroke.pos[0].x;
+                let y = stroke.pos[0].y;
+                let width = stroke.pos[1].x - x;
+                let height = stroke.pos[1].y - y;
+                ctx.fillRect(x, y, width, height);
             }
         }
     }
@@ -194,17 +239,17 @@
 
     /**
      * Given a canvas and a mouse move event, finds the position of the center of the cursor
-     * realtive to the canvas.
+     * realitve to the canvas.
      * 
      * @param {HTMLElement} canvas - The canvas to get the mouse cursor relative to
      * @param {MouseEvent} mouseEvent - The mouse event that holds cursor data
      * @returns {Object} The position of the center of the cursor relative to the canvas.
      */
     function getMousePos(canvas, mouseEvent) {
-        let canvasOffest = { x: canvas.offsetLeft, y: canvas.offsetTop };
+        let canvasOffset = { x: canvas.offsetLeft, y: canvas.offsetTop };
         return {
-            x: mouseEvent.clientX - canvasOffest.x - 10,
-            y: mouseEvent.clientY - canvasOffest.y - 10
+            x: mouseEvent.clientX - canvasOffset.x - 10,
+            y: mouseEvent.clientY - canvasOffset.y - 10
         };
     }
 

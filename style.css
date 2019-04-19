@@ -66,6 +66,10 @@ body:not([data-page-load="page-rendering"]) main {
     width: 99%;
 }
 
+button[data-selected="true"] { /* tool selected styles */
+    border: 5px solid red;
+}
+
 @keyframes centerMove {
     100% {
         margin-top: 8px;
