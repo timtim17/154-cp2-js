@@ -351,7 +351,9 @@
      */
     function save(canvas) {
         let dataURL = canvas.toDataURL();
-        // force a download by clicking a non-existant <a> tag
+        // force a download by clicking a <a> tag
+        // this tag is not for the dom, just generated
+        // for javascript purposes
         // https://stackoverflow.com/a/45905238/1108513
         let downloadAnchor = document.createElement("a");
         downloadAnchor.href = dataURL;
