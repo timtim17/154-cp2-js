@@ -22,6 +22,7 @@
     let redoStack = [];
     let curState = null;
     let isMouseDown = false;
+    let color = "#000000";
     let backgroundColor = "#ffffff";
     let mousePos = undefined;
 
@@ -54,23 +55,24 @@
         canvas.addEventListener("mousemove", (event) => {
             onMouseMove(event, canvas);
         });
-        canvas.addEventListener("mouseup", () => {
-            onMouseUp(undoBtn);
-        });
+        canvas.addEventListener("mouseup", onMouseUp);
         id("button-row").childNodes.forEach(setupBtnListeners);
-        undoBtn.addEventListener("click", () => {
-            onUndoClick(undoBtn, redoBtn);
+        undoBtn.addEventListener("click", onUndoClick);
+        redoBtn.addEventListener("click", onRedoClick);
+        id("btn-fill").addEventListener("click", () => {
+            // by default event handler passes in a reference to the event
+            // if i were to just do addEventListener("click", func),
+            // func would get the event. in this case i don't want that,
+            // since i have a default value for the first parameter
+            fill();
         });
-        redoBtn.addEventListener("click", () => {
-            onRedoClick(undoBtn, redoBtn);
-        });
-        id("btn-fill").addEventListener("click", clear);   // todo: add color
         // id("btn-sticker").addEventListener("click", sticker);
         id("btn-save").addEventListener("click", () => {
             save(canvas);
         });
+        id("in-color").addEventListener("change", changeColor);
 
-        clear();
+        fill(backgroundColor);
         setInterval(() => {
             render(ctx);
         }, 10);
@@ -86,7 +88,7 @@
             if (curState === "paint" || curState === "freeform" || curState === "erase") {
                 // hold mouse down to draw tools
                 // color is ignored in the case of erase
-                undoStack.push(createNewStroke(curState, "#000000", []));
+                undoStack.push(createNewStroke(curState, color, []));
                 isMouseDown = true;
             } else if (curState === "rect" || curState === "line") {
                 // two point shape tools
@@ -101,7 +103,7 @@
                     // end the stroke here
                     isMouseDown = false;
                 } else {    // starting a new shape
-                    undoStack.push(createNewStroke(curState, "#000000",
+                    undoStack.push(createNewStroke(curState, color,
                                     [mousePos, mousePos]));
                     isMouseDown = true;
                 }
@@ -112,13 +114,7 @@
                 // step 1: find the most recent fill
                 // we only want to delete strokes that are visible, and any strokes before a
                 // fill are not.
-
-                // personally i would use a for loop from length-1 to 0, breaking at a fill,
-                // but per style guide 6.2 break is not allowed
-                let lastFillIdx = undoStack.length - 1;
-                while (lastFillIdx > 0 && undoStack[lastFillIdx].command !== "fill") {
-                    lastFillIdx--;
-                }
+                let lastFillIdx = findLastCmdMatch(undoStack, "fill");
                 // now lastFillIdx is definitely the index of a fill. since the first command
                 // is a fill, even if we hit index 0 our first command is a fill
 
@@ -186,15 +182,13 @@
     /**
      * Event handler to handle mouse up events. Stops the current stroke.
      * Also enables the undo button, because now there is at least one stroke to undo.
-     *
-     * @param {HTMLElement} undoBtn - A reference to the undo button
      */
-    function onMouseUp(undoBtn) {
+    function onMouseUp() {
         if (curState) {
             if (curState === "paint" || curState === "freeform" || curState === "erase") {
                 isMouseDown = false;
             }
-            setButtonDisableStatus(undoBtn, false);
+            setButtonDisableStatus("btn-undo", false);
         }
     }
 
@@ -222,21 +216,22 @@
     /**
      * Handles a click on the undo button. Takes the last stroke done, removes it from the
      * list of strokes to draw, and adds it to the redo buffer for future redoing
-     *
-     * @param {HTMLElement} undoBtn - A reference to the undo button
-     * @param {HTMLElement} redoBtn - A reference to the redo button
      */
-    function onUndoClick(undoBtn, redoBtn) {
+    function onUndoClick() {
         let stroke = undoStack.pop();
         if (stroke.command === "delstroke") {
             stroke.strokes.forEach((stroke) => {
                 undoStack.push(stroke);
             });
+        } else if (stroke.command === "fill") {
+            // grab the previous fill color so that backgroundColor has the correct color and
+            // the eraser erases with the correct color.
+            backgroundColor = undoStack[findLastCmdMatch(undoStack, "fill")].color;
         }
         redoStack.push(stroke);
-        setButtonDisableStatus(redoBtn, false);
+        setButtonDisableStatus("btn-redo", false);
         if (undoStack.length === 1) {    // don't undo the initial canvas clear
-            setButtonDisableStatus(undoBtn, true);
+            setButtonDisableStatus("btn-undo", true);
         }
     }
 
@@ -244,31 +239,33 @@
      * Handles a click on the redo button. Takes the last stroke undone, removes it from the
      * list of undone strokes, and adds it to the undo and draw buffers for drawing and future
      * undoing.
-     * 
-     * @param {HTMLElement} undoBtn - A reference to the undo button
-     * @param {HTMLElement} redoBtn - A reference to the redo button
      */
-    function onRedoClick(undoBtn, redoBtn) {
+    function onRedoClick() {
         let stroke = redoStack.pop();
         if (stroke.command === "delstroke") {
             stroke.strokes.forEach((stroke) => {
                 undoStack.splice(undoStack.indexOf(stroke), 1);
             });
+        } else if (stroke.command === "fill") {
+            // we're filling the canvas with a new color, so reset backgroundColor so that
+            // erase has the correct color
+            backgroundColor = stroke.color;
         }
         undoStack.push(stroke);
         if (redoStack.length === 0) {
-            setButtonDisableStatus(redoBtn, true);
+            setButtonDisableStatus("btn-redo", true);
         }
-        setButtonDisableStatus(undoBtn, false);
+        setButtonDisableStatus("btn-undo", false);
     }
 
     /**
-     * Sets the disabled state of the given button.
+     * Sets the disabled state of the named button.
      *
-     * @param {HTMLElement} button - The button to change the state on
+     * @param {string} btnId - The id of the button to change the state on
      * @param {boolean} disabled - Whether or not the button should be disabled
      */
-    function setButtonDisableStatus(button, disabled) {
+    function setButtonDisableStatus(btnId, disabled) {
+        let button = id(btnId);
         if ((button.disabled && !disabled) || (!button.disabled && disabled)) {
             button.disabled = disabled;
         }
@@ -334,14 +331,25 @@
     }
 
     /**
-     * Clears the canvas. As a side-effect, also clears the redo
-     * buffer and disables the redo button - once we clear the canvas
-     * we assume that the user no longer wants to redo.
+     * Fills the canvas, effectively clearing. As a side-effect, also clears the redo buffer
+     * and disables the redo button- once we clear the canvas we assume that the user
+     * no longer wants to redo.
+     *
+     * Optionally, a color can be passed in to be forced as the color to fill with. Otherwise,
+     * the currently selected color is used as the fill color. That color is stored for future
+     * erasing.
+     *
+     * @param {string} [colorOverride=undefined] - Color to override default color behavior with
      */
-    function clear() {
+    function fill(colorOverride=undefined) {
         redoStack = [];
-        id("btn-redo").disabled = true;
-        undoStack.push(createNewStroke("fill", backgroundColor));
+        setButtonDisableStatus("btn-redo", true);
+        if (colorOverride) {
+            undoStack.push(createNewStroke("fill", colorOverride));
+        } else {
+            backgroundColor = color;
+            undoStack.push(createNewStroke("fill", backgroundColor));
+        }
     }
 
     /**
@@ -354,7 +362,6 @@
         // force a download by clicking a <a> tag
         // this tag is not for the dom, just generated
         // for javascript purposes
-        // https://stackoverflow.com/a/45905238/1108513
         let downloadAnchor = document.createElement("a");
         downloadAnchor.href = dataURL;
         downloadAnchor.download = "art.png";
@@ -362,8 +369,17 @@
     }
 
     /**
+     * Changes the color being drawn in. Gets the color value from a color input element,
+     * which is assumed to be the scope in {this}. Thus, this method must only be called
+     * by an event listener on a color input.
+     */
+    function changeColor() {
+        color = this.value;
+    }
+
+    /**
      * Given a canvas and a mouse move event, finds the position of the center of the cursor
-     * realitve to the canvas.
+     * relative to the canvas.
      * 
      * @param {HTMLElement} canvas - The canvas to get the mouse cursor relative to
      * @param {MouseEvent} mouseEvent - The mouse event that holds cursor data
@@ -400,6 +416,25 @@
      */
     function distance(pos1, pos2) {
         return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
+    }
+
+    /**
+     * Finds the most recent occurrence of the given command name in the given list.
+     * The list is expected to be a list of "stroke" commands, matching the stroke structure,
+     * see {@link createNewStroke}.
+     * 
+     * @param {Any[]} list - The list to search through
+     * @param {string} cmd - The command name to search for
+     * @returns {int} The index of the occurrence furthest in the list, or -1 if not found
+     */
+    function findLastCmdMatch(list, cmd) {
+        // personally i would use a for loop from length-1 to 0, breaking at a match,
+        // but per style guide 6.2 break is not allowed
+        let idx = list.length - 1;
+        while (idx >= 0 && list[idx].command !== cmd) {
+            idx--;
+        }
+        return idx;
     }
 
     /* CSE 154 SHORTCUT FUNCTIONS */

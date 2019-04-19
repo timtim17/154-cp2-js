@@ -38,7 +38,6 @@ aside {
     animation: asideSlideIn cubic-bezier(0, 0, 0, 1) 1 1s 4s forwards;
     background-color: #45c3ff;
     border-radius: 20px 0 0 20px;
-    color: #eeeeee;
     height: 80vh;
     overflow-y: scroll;
     position: fixed;
@@ -83,20 +82,24 @@ body:not([data-page-load="page-rendering"]) main {
 #button-row {
     display: inline-block;
     margin-top: 8px;
+    position: relative;
 }
 
-#button-row button {
+#button-row button, #in-color {
     background: none;
     border: solid 5px purple;
     border-radius: 10px;
     height: 70px;
-    font-size: 0.7em;
     margin: 0 4px;
     transition: border-color 500ms ease, background-color 500ms ease;
     width: 70px;
 }
 
-#button-row button:not([disabled]):hover {
+#button-row button, label[for="in-color"] {
+    font-size: 0.7em;
+}
+
+#button-row button:not([disabled]):hover, #in-color:hover {
     border-color: green;
 }
 
@@ -116,8 +119,26 @@ body:not([data-page-load="page-rendering"]) main {
 #button-row button[disabled] {
     background: #333333;
     border-color: #222222;
-    color: white;
     cursor: not-allowed;
+}
+
+#button-row button[disabled], label[for="in-color"] {
+    color: white;
+}
+
+#in-color {
+    height: 60px;
+    padding: 0;
+    width: 60px;
+    vertical-align: bottom;
+}
+
+label[for="in-color"] {
+    font-size: 0.7em;
+    position: absolute;
+    right: 25px;
+    text-shadow: black 0 0 4px;
+    top: 19.5%;
 }
 
 @keyframes centerMove {
