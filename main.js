@@ -35,14 +35,16 @@
     window.addEventListener("load", init);
 
     /**
-     * Run once the page loads.
+     * Run once the page loads. Sets up event listeners, and sets the canvas settings.
      */
     function init() {
-        /* remove the page-rendering data attr so that the css knows that the page is done loading
+        /* remove the dom-loading class so that the css knows that the page is done loading
         this makes the animation wait till the page is loaded, so that it actually renders the
         whole thing (if the animation starts during page load the element isn't visible for
         half the animation) */
-        document.body.dataset.pageLoad = "";
+        qsa(".dom-loading").forEach((node) => {
+            node.classList.remove("dom-loading");
+        });
 
         let canvas = qs("canvas");
         window.addEventListener("resize", () => {
@@ -78,20 +80,8 @@
         });
         id("in-color").addEventListener("change", changeColor);
 
-        /* Stickers */
         id("btn-sticker").addEventListener("click", toggleStickersVisibility);
-        let stickerImgCont = qs("#stickers div");
-        for (let sticker of stickers) {
-            let ele = document.createElement("img");
-            ele.src = sticker;
-            ele.alt = "pixel art sticker";
-            ele.addEventListener("click", function() {
-                changeState("sticker");
-                curSticker = this;
-                toggleStickersVisibility();
-            });
-            stickerImgCont.appendChild(ele);
-        }
+        setupStickers();
 
         fill(backgroundColor);
         setInterval(() => {
@@ -129,57 +119,66 @@
                     isMouseDown = true;
                 }
             } else if (curState === "delstroke") {
-                // delete stroke tool
-                // finds any strokes near the given position and deletes them from rendering
-
-                // step 1: find the most recent fill
-                // we only want to delete strokes that are visible, and any strokes before a
-                // fill are not.
-                let lastFillIdx = findLastCmdMatch(undoStack, "fill");
-                // now lastFillIdx is definitely the index of a fill. since the first command
-                // is a fill, even if we hit index 0 our first command is a fill
-
-                // step 2: from that index to length check each stroke for proximity to current
-                // mouse pos
-                let undoneStrokes = [];
-                for (let i = lastFillIdx + 1; i < undoStack.length; i++) {
-                    let stroke = undoStack[i];
-                    if (stroke.command === "paint" || stroke.command === "freeform") {
-                        // would use a for loop and break on delete but break is banned
-                        let j = 0;
-                        let deleted = false;
-                        while (j < stroke.pos.length && !deleted) {
-                            let pos = stroke.pos[j];
-                            if (distance(pos, mousePos) < DELSTROKE_TOLERANCE) {
-                                // i-- because after the deletion indexes shift over
-                                undoneStrokes.push(undoStack.splice(i--, 1)[0]);
-                                deleted = true;
-                            }
-                            j++;
-                        }
-                    } else if (stroke.command === "line" || stroke.command === "rect") {
-                        let xMin = Math.min(stroke.pos[0].x, stroke.pos[1].x) - DELSTROKE_TOLERANCE;
-                        let xMax = Math.max(stroke.pos[0].x, stroke.pos[1].x) + DELSTROKE_TOLERANCE;
-                        let yMin = Math.min(stroke.pos[0].y, stroke.pos[1].y) - DELSTROKE_TOLERANCE;
-                        let yMax = Math.max(stroke.pos[0].y, stroke.pos[1].y) + DELSTROKE_TOLERANCE;
-                        if (mousePos.x >= xMin && mousePos.x <= xMax && mousePos.y >= yMin &&
-                                mousePos.y <= yMax) {
-                            undoneStrokes.push(undoStack.splice(i--, 1)[0]);
-                        }
-                    }
-                }
-
-                // step 3: pack all of those undone strokes into a single command to undo
-                if (undoneStrokes.length > 0) {
-                    let bundle = createNewStroke("delstroke", null);
-                    bundle.strokes = undoneStrokes;
-                    undoStack.push(bundle);
-                }
+                helperDelStroke();
             } else if (curState === "sticker") {
                 let stroke = createNewStroke("sticker", null, [mousePos]);
                 stroke.sticker = curSticker;
                 undoStack.push(stroke);
             }
+        }
+    }
+
+    /**
+     * A function to help with the delstroke tool so that {@link render} is more readable. Given the
+     * current mouse position in a module-global variable, finds all strokes near the cursor and
+     * move them from the drawing undo buffer to the redo buffer.
+     */
+    function helperDelStroke() {
+        // delete stroke tool
+        // finds any strokes near the given position and deletes them from rendering
+
+        // step 1: find the most recent fill
+        // we only want to delete strokes that are visible, and any strokes before a
+        // fill are not.
+        let lastFillIdx = findLastCmdMatch(undoStack, "fill");
+        // now lastFillIdx is definitely the index of a fill. since the first command
+        // is a fill, even if we hit index 0 our first command is a fill
+
+        // step 2: from that index to length check each stroke for proximity to current
+        // mouse pos
+        let undoneStrokes = [];
+        for (let i = lastFillIdx + 1; i < undoStack.length; i++) {
+            let stroke = undoStack[i];
+            if (stroke.command === "paint" || stroke.command === "freeform") {
+                // would use a for loop and break on delete but break is banned
+                let j = 0;
+                let deleted = false;
+                while (j < stroke.pos.length && !deleted) {
+                    let pos = stroke.pos[j];
+                    if (distance(pos, mousePos) < DELSTROKE_TOLERANCE) {
+                        // i-- because after the deletion indexes shift over
+                        undoneStrokes.push(undoStack.splice(i--, 1)[0]);
+                        deleted = true;
+                    }
+                    j++;
+                }
+            } else if (stroke.command === "line" || stroke.command === "rect") {
+                let xMin = Math.min(stroke.pos[0].x, stroke.pos[1].x) - DELSTROKE_TOLERANCE;
+                let xMax = Math.max(stroke.pos[0].x, stroke.pos[1].x) + DELSTROKE_TOLERANCE;
+                let yMin = Math.min(stroke.pos[0].y, stroke.pos[1].y) - DELSTROKE_TOLERANCE;
+                let yMax = Math.max(stroke.pos[0].y, stroke.pos[1].y) + DELSTROKE_TOLERANCE;
+                if (mousePos.x >= xMin && mousePos.x <= xMax && mousePos.y >= yMin &&
+                        mousePos.y <= yMax) {
+                    undoneStrokes.push(undoStack.splice(i--, 1)[0]);
+                }
+            }
+        }
+
+        // step 3: pack all of those undone strokes into a single command to undo
+        if (undoneStrokes.length > 0) {
+            let bundle = createNewStroke("delstroke", null);
+            bundle.strokes = undoneStrokes;
+            undoStack.push(bundle);
         }
     }
 
@@ -356,6 +355,17 @@
             }
         }
 
+        renderEraserHelper(ctx);
+        renderStickerPlaceholder(ctx);
+    }
+
+    /**
+     * Draws a small circle when the current tool is an eraser tool so that it is easier to see what
+     * is being erased.
+     *
+     * @param {CanvasRenderingContext2D} ctx - The context to draw on the canvas
+     */
+    function renderEraserHelper(ctx) {
         if (curState === "erase" || curState === "delstroke") {
             // draw helper - small circle to help indicate where it will erase
             ctx.strokeStyle = "#666666";
@@ -366,7 +376,16 @@
             ctx.stroke();
             ctx.lineWidth = WIDTH;
             ctx.setLineDash([]);
-        } else if (curState === "sticker") {
+        }
+    }
+
+    /**
+     * Renders a semi-transparent preview of the selected sticker when the sticker tool is in use.
+     *
+     * @param {CanvasRenderingContext2D} ctx - The context to draw on the canvas
+     */
+    function renderStickerPlaceholder(ctx) {
+        if (curState === "sticker") {
             ctx.globalAlpha = 0.5;
             ctx.drawImage(curSticker, mousePos.x - curSticker.width / 2,
                 mousePos.y - curSticker.height / 2);
@@ -430,6 +449,25 @@
             stickers.dataset.active = false;
         } else {
             stickers.dataset.active = true;
+        }
+    }
+
+    /**
+     * Sets up stickers. Takes the list of available stickers
+     * and generates an element for each one.
+     */
+    function setupStickers() {
+        let stickerImgCont = qs("#stickers div");
+        for (let sticker of stickers) {
+            let ele = document.createElement("img");
+            ele.src = sticker;
+            ele.alt = "pixel art sticker";
+            ele.addEventListener("click", function() {
+                changeState("sticker");
+                curSticker = this;
+                toggleStickersVisibility();
+            });
+            stickerImgCont.appendChild(ele);
         }
     }
 
@@ -527,4 +565,15 @@
     function qs(selector) {
         return document.querySelector(selector);
     }
+    
+    /**
+     * Returns all the elements in the DOM that match the given selector.
+     *
+     * @param {string} selector - The selector to search with
+     * @returns {HTMLELement[]} All elements in the DOM that match that selector
+     */
+    function qsa(selector) {
+        return document.querySelectorAll(selector);
+    }
+
 })();
