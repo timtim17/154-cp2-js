@@ -28,7 +28,8 @@
     // future functionality: use a file input to accept more stickers.
     // could be stored either as data-urls in localstorage or stored server side
     let stickers = ["img/sticker-pikachu.png", "img/sticker-rainbowdash.png",
-                        "img/sticker-eyes.png", "img/sticker-thinking.png"];
+                        "img/sticker-eyes.png", "img/sticker-thinking.png",
+                        "img/sticker-gomez.png"];
     let curSticker = undefined;
 
     window.addEventListener("load", init);
