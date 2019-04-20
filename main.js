@@ -129,9 +129,9 @@
     }
 
     /**
-     * A function to help with the delstroke tool so that {@link render} is more readable. Given the
-     * current mouse position in a module-global variable, finds all strokes near the cursor and
-     * move them from the drawing undo buffer to the redo buffer.
+     * A function to help with the delstroke tool so that {@link onMouseDown} is more readable.
+     * Given the current mouse position in a module-global variable, finds all strokes near the
+     * cursor and move them from the drawing undo buffer to the redo buffer.
      */
     function helperDelStroke() {
         // delete stroke tool
