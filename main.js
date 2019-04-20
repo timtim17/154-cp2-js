@@ -25,6 +25,8 @@
     let color = "#000000";
     let backgroundColor = "#ffffff";
     let mousePos = undefined;
+    // future functionality: use a file input to accept more stickers.
+    // could be stored either as data-urls in localstorage or stored server side
     let stickers = ["img/sticker-pikachu.png", "img/sticker-rainbowdash.png",
                         "img/sticker-eyes.png", "img/sticker-thinking.png"];
     let curSticker = undefined;
