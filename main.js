@@ -2,7 +2,7 @@
  * @author Austin Jenchi
  * CSE 154 AQ 19sp
  * @date 04-18-2019
- * Javascript to control the functionality of the paint applications.
+ * @file Javascript to control the functionality of the paint applications.
  * Adds interactivity to the canvas so that it can be drawn on, as well as the
  * buttons for changing the status of the drawing tool. Keeps track of undo and redo,
  * as well as individual strokes so that they can be removed and redone in order.
@@ -43,13 +43,14 @@
         half the animation) */
         document.body.dataset.pageLoad = "";
 
-        let canvas = document.getElementsByTagName("canvas")[0];
-        // per MDN, canvas context size must be set using the html properties width and height
-        // using javascript and computed styles because the canvas size is relative to the viewport
-        // width
-        let computedCanvas = window.getComputedStyle(canvas);
-        canvas.width = computedCanvas.width.substring(0, computedCanvas.width.length - 2);
-        canvas.height = computedCanvas.height.substring(0, computedCanvas.height.length - 2);
+        let canvas = qs("canvas");
+        window.addEventListener("resize", () => {
+            /* resize handler holds behavior. this resizes the canvas so it's at a decent proportion
+            even when the window is resized. this behavior is not recommended however, as the lines
+            start to act weirdly, though it does function */
+            resizeCanvas(canvas);
+        });
+        resizeCanvas(canvas);
         let ctx = canvas.getContext("2d");
         ctx.lineWidth = WIDTH;
 
@@ -489,6 +490,19 @@
             idx--;
         }
         return idx;
+    }
+
+    /**
+     * Handles viewport resizes by changing the canvas width and height so it renders properly.
+     * @param {HTMLElement} canvas - The canvas to resize
+     */
+    function resizeCanvas(canvas) {
+        // per MDN, canvas context size must be set using the html properties width and height
+        // using javascript and computed styles because the canvas size is relative to the viewport
+        // width
+        let computedCanvas = window.getComputedStyle(canvas);
+        canvas.width = computedCanvas.width.substring(0, computedCanvas.width.length - 2);
+        canvas.height = computedCanvas.height.substring(0, computedCanvas.height.length - 2);
     }
 
     /* CSE 154 SHORTCUT FUNCTIONS */

@@ -1,6 +1,11 @@
 /*
     Austin Jenchi
     CSE 154 AQ 19sp
+    04-18-2019
+    CSS to style the canvas painting page. Adds animation for all of the ui elements, from header to
+    footer to aside to main. This page is styled best for full screen. The animations are delayed by
+    waiting for Javascript to remove a data attribute from the body tag so that the elements are
+    fully rendered and showing before they start animating.
 */
 @import url('https://fonts.googleapis.com/css?family=Finger+Paint|Source+Sans+Pro');
 
@@ -27,11 +32,14 @@ canvas {
 h1 {
     font-size: 3em;
     font-family: 'Finger Paint', cursive;
+    margin-top: 50vh;
     margin-bottom: 8px;
 }
 
 main {
     text-align: center;
+    margin-top: 90vh;
+    opacity: 0;
 }
 
 aside {
@@ -41,8 +49,9 @@ aside {
     height: 80vh;
     overflow-y: scroll;
     position: fixed;
-    visibility: hidden;
+    right: -15vw;
     top: 10vh;
+    visibility: hidden;
     width: 15vw;
 }
 
@@ -50,6 +59,7 @@ footer {
     animation: footerSlideIn cubic-bezier(0, 0, 0, 1) 1 1s 5s forwards;
     background-color: #2cde29;
     border-radius: 20px 20px 0 0;
+    bottom: -5vh;
     left: 5%;
     position: fixed;
     text-align: center;
@@ -71,25 +81,23 @@ body:not([data-page-load="page-rendering"]) header h1 {
                centerPop cubic-bezier(0.93,-0.01, 0.6, 2.07) 1 1s,
                centerRotate ease-in-out 1 0.5s 1s,
                rainbow linear infinite 5s 3s;
-    margin-top: 50vh;
 }
 
 body:not([data-page-load="page-rendering"]) main {
     animation: moveUp cubic-bezier(0.47, 0.63, 0.58, 0.98) 1 1s 3s forwards;
-    opacity: 0;
 }
 
 #stickers {
-    position: fixed;
-    transition: top ease 1s;
     background-color: #ff5050;
-    padding: 4px;
-    width: 75vw;
-    height: fit-content;
-    z-index: 10;
-    top: -30vh;
-    left: 12.5vw;
     border-radius: 20px;
+    height: fit-content;
+    left: 12.5vw;
+    padding: 4px;
+    position: fixed;
+    top: -30vh;
+    transition: top ease 1s;
+    width: 75vw;
+    z-index: 10;
 }
 
 #stickers[data-active="true"] {
@@ -177,6 +185,7 @@ label[for="in-color"] {
 }
 
 @keyframes centerMove {
+    /* This should probably be a position animation but it breaks all the canvas stuff */
     100% {
         margin-top: 8px;
     }
@@ -237,10 +246,6 @@ label[for="in-color"] {
 }
 
 @keyframes moveUp {
-    0% {
-        margin-top: 90vh;
-    }
-
     100% {
         margin-top: 0vh;
         opacity: 1;
@@ -250,7 +255,6 @@ label[for="in-color"] {
 @keyframes asideSlideIn {
     0% {
         visibility: visible;
-        right: -15vw;
     }
 
     100% {
@@ -262,7 +266,6 @@ label[for="in-color"] {
 @keyframes footerSlideIn {
     0% {
         visibility: visible;
-        bottom: -5vh;
     }
 
     100% {
