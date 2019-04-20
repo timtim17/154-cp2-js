@@ -25,6 +25,9 @@
     let color = "#000000";
     let backgroundColor = "#ffffff";
     let mousePos = undefined;
+    let stickers = ["img/sticker-pikachu.png", "img/sticker-rainbowdash.png", "img/sticker-eyes.png",
+                        "img/sticker-thinking.png"];
+    let curSticker = undefined;
 
     window.addEventListener("load", init);
 
@@ -66,11 +69,25 @@
             // since i have a default value for the first parameter
             fill();
         });
-        // id("btn-sticker").addEventListener("click", sticker);
         id("btn-save").addEventListener("click", () => {
             save(canvas);
         });
         id("in-color").addEventListener("change", changeColor);
+
+        /* Stickers */
+        id("btn-sticker").addEventListener("click", toggleStickersVisibility);
+        let stickerImgCont = qs("#stickers div");
+        for (let sticker of stickers) {
+            let ele = document.createElement("img");
+            ele.src = sticker;
+            ele.alt = "pixel art sticker";
+            ele.addEventListener("click", function() {
+                changeState("sticker");
+                curSticker = this;
+                toggleStickersVisibility();
+            });
+            stickerImgCont.appendChild(ele);
+        }
 
         fill(backgroundColor);
         setInterval(() => {
@@ -154,6 +171,10 @@
                     bundle.strokes = undoneStrokes;
                     undoStack.push(bundle);
                 }
+            } else if (curState === "sticker") {
+                let stroke = createNewStroke("sticker", null, [mousePos]);
+                stroke.sticker = curSticker;
+                undoStack.push(stroke);
             }
         }
     }
@@ -203,14 +224,25 @@
         if (node.nodeName === "BUTTON" && node.dataset.stateChange !== "no") {
             const stateName = node.id.substring(4);   // btn- is 4 chars.
             node.addEventListener("click", () => {
-                if (curState) {
-                    // if there is currently a tool selected, remove the selected attr from it
-                    id("btn-" + curState).dataset.selected = false;
-                }
-                curState = stateName;
-                node.dataset.selected = true;
+               changeState(stateName);
             });
         }
+    }
+
+    /**
+     * Changes the current state -- the tool in use. Changes the UI so that the currently in
+     * use tool is highlighted in red border. Assumes that all state buttons follow the format
+     * for id "btn-statename".
+     *
+     * @param {string} newState - The state to activate
+     */
+    function changeState(newState) {
+        if (curState) {
+            // if there is currently a tool selected, remove the selected attr from it
+            id("btn-" + curState).dataset.selected = false;
+        }
+        curState = newState;
+        id("btn-" + newState).dataset.selected = true;
     }
 
     /**
@@ -314,11 +346,14 @@
                     ctx.arc(pos.x, pos.y, WIDTH, 0, 2 * Math.PI);
                     ctx.fill();
                 }
+            } else if (stroke.command === "sticker") {
+                ctx.drawImage(stroke.sticker, stroke.pos[0].x - stroke.sticker.width / 2,
+                    stroke.pos[0].y - stroke.sticker.height / 2);
             }
         }
 
-        // draw helper - small circle to help indicate where it will erase
         if (curState === "erase" || curState === "delstroke") {
+            // draw helper - small circle to help indicate where it will erase
             ctx.strokeStyle = "#666666";
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 2]);
@@ -327,6 +362,11 @@
             ctx.stroke();
             ctx.lineWidth = WIDTH;
             ctx.setLineDash([]);
+        } else if (curState === "sticker") {
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage(curSticker, mousePos.x - curSticker.width / 2,
+                mousePos.y - curSticker.height / 2);
+            ctx.globalAlpha = 1.0;
         }
     }
 
@@ -375,6 +415,18 @@
      */
     function changeColor() {
         color = this.value;
+    }
+
+    /**
+     * Toggles the visibility of the sticker container.
+     */
+    function toggleStickersVisibility() {
+        let stickers = id("stickers");
+        if (stickers.dataset.active === "true") {
+            stickers.dataset.active = false;
+        } else {
+            stickers.dataset.active = true;
+        }
     }
 
     /**
@@ -447,5 +499,15 @@
      */
     function id(idName) {
         return document.getElementById(idName);
+    }
+
+    /**
+     * Returns the first element in the DOM tree that matches the given selector.
+     *
+     * @param {string} selector - The selector to search with
+     * @returns {HTMLElement} The first element in the DOM that matches that selector
+     */
+    function qs(selector) {
+        return document.querySelector(selector);
     }
 })();
