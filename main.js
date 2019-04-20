@@ -244,6 +244,9 @@
             // if there is currently a tool selected, remove the selected attr from it
             id("btn-" + curState).dataset.selected = false;
         }
+        if (id("stickers").dataset.active === "true") {
+            toggleStickersVisibility();
+        }
         curState = newState;
         id("btn-" + newState).dataset.selected = true;
     }
@@ -465,7 +468,6 @@
             ele.addEventListener("click", function() {
                 changeState("sticker");
                 curSticker = this;
-                toggleStickersVisibility();
             });
             stickerImgCont.appendChild(ele);
         }
