@@ -25,8 +25,8 @@
     let color = "#000000";
     let backgroundColor = "#ffffff";
     let mousePos = undefined;
-    let stickers = ["img/sticker-pikachu.png", "img/sticker-rainbowdash.png", "img/sticker-eyes.png",
-                        "img/sticker-thinking.png"];
+    let stickers = ["img/sticker-pikachu.png", "img/sticker-rainbowdash.png",
+                        "img/sticker-eyes.png", "img/sticker-thinking.png"];
     let curSticker = undefined;
 
     window.addEventListener("load", init);
