@@ -13,6 +13,11 @@
      * The max distance a stroke can be from the center of the cursor and still be deleted
      */
     const DELSTROKE_TOLERANCE = 15 / 2;
+    // future functionality: use a file input to accept more stickers.
+    // could be stored either as data-urls in localstorage or stored server side
+    const STICKERS = ["img/sticker-pikachu.png", "img/sticker-rainbowdash.png",
+                        "img/sticker-eyes.png", "img/sticker-thinking.png",
+                        "img/sticker-gomez.png"];
     /**
      * The width of a stroke.
      */
@@ -25,11 +30,6 @@
     let color = "#000000";
     let backgroundColor = "#ffffff";
     let mousePos = undefined;
-    // future functionality: use a file input to accept more stickers.
-    // could be stored either as data-urls in localstorage or stored server side
-    let stickers = ["img/sticker-pikachu.png", "img/sticker-rainbowdash.png",
-                        "img/sticker-eyes.png", "img/sticker-thinking.png",
-                        "img/sticker-gomez.png"];
     let curSticker = undefined;
 
     window.addEventListener("load", init);
@@ -461,7 +461,7 @@
      */
     function setupStickers() {
         let stickerImgCont = qs("#stickers div");
-        for (let sticker of stickers) {
+        for (let sticker of STICKERS) {
             let ele = document.createElement("img");
             ele.src = sticker;
             ele.alt = "pixel art sticker";
