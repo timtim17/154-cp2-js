@@ -567,7 +567,7 @@
     function qs(selector) {
         return document.querySelector(selector);
     }
-    
+
     /**
      * Returns all the elements in the DOM that match the given selector.
      *
