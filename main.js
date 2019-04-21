@@ -572,7 +572,7 @@
      * Returns all the elements in the DOM that match the given selector.
      *
      * @param {string} selector - The selector to search with
-     * @returns {HTMLELement[]} All elements in the DOM that match that selector
+     * @returns {HTMLElement[]} All elements in the DOM that match that selector
      */
     function qsa(selector) {
         return document.querySelectorAll(selector);
