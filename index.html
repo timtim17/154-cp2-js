@@ -1,0 +1,143 @@
+<!doctype html>
+<!-- 
+    Austin Jenchi
+    CSE 154 AQ 19sp
+    04-18-2019
+    Main canvas paint application. Has sections for the main canvas, selecting tools using buttons,
+    and selecting stickers. Stickers are filled using Javascript.
+-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Paint</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="main.js"></script>
+    </head>
+
+    <body>
+        <header class="dom-loading">
+            <h1>Time to Paint!</h1>
+        </header>
+
+        <main class="dom-loading">
+            <section>
+                <canvas>
+                    Your browser doesn't support HTML5 Canvas :(
+                    (really though Canvas support was added in Firefox 1.5, Chrome & Opera 9, and even
+                    IE 9... time to update your browser?)
+                </canvas>
+            </section>
+
+            <aside>
+                <h2>Paint</h2>
+                <p>
+                    Click and hold as you move around the canvas to paint.
+                </p>
+
+                <h2>Fill</h2>
+                <p>
+                    Fills the entire canvas using the currently selected color.
+                </p>
+
+                <h2>Rect</h2>
+                <p>
+                    Draws a rectangle. Click once to set a corner, then click again
+                    somewhere else for another point.
+                </p>
+
+                <h2>Line</h2>
+                <p>
+                    Draws a line. Click once to set one endpoint, then again to finish.
+                </p>
+
+                <h2>Freeform</h2>
+                <p>
+                    Draws a freeform shape. Draw anywhere on the canvas like the Paint tool,
+                    and the shape you draw will be closed automatically.
+                </p>
+
+                <h2>Erase</h2>
+                <p>
+                    "Draw" anywhere on the canvas like Paint, except you erase instead.
+                </p>
+
+                <h2>DelStroke</h2>
+                <p>
+                    Click anywhere on the canvas, and the tool will erase the entirety of any stroke
+                    near where you click. Caution: a little temperamental on undo and redo.
+                </p>
+
+                <h2>Undo</h2>
+                <p>
+                    Undoes the last stroke.
+                </p>
+
+                <h2>Redo</h2>
+                <p>
+                    Redoes the last stroke.
+                </p>
+
+                <h2>Sticker</h2>
+                <p>
+                    Allows you to add stickers to the Canvas.
+                </p>
+
+                <h2>Save</h2>
+                <p>
+                    Saves your piece of art to a png file.
+                </p>
+            </aside>
+
+            <section id="stickers">
+                <h2>Stickers</h2>
+                <div></div>
+                <!--
+                    Default sticker citations:
+                    - Pikachu
+                      Created by DeviantArt user ToshiroFrog
+                      https://www.deviantart.com/toshirofrog/art/16-Bit-Sprites-Pikachu-331469418
+                    - Rainbow Dash
+                      Created by an Unknown User (found on "KissPNG", but appears to be a DeviantArt
+                      post that cannot be found)
+                      https://www.kisspng.com/png-rainbow-dash-deviantart-pixel-art-pony-pixel-art-r-5126783/preview.html
+                    - Thinking Emoji
+                      Found on Wikimedia by Twitter under CC BY 4.0
+                      https://commons.wikimedia.org/wiki/File:Twemoji2_1f914.svg
+                    - Eyes Emoji
+                      Found on Wikimedia by Google under Apache License 2.0
+                      https://commons.wikimedia.org/wiki/File:Noto_Emoji_Pie_1f440.svg
+                    - Fez Gomez
+                      Created by DeviantArt user SoarDesigns
+                      https://www.deviantart.com/soardesigns/art/Fez-Render-Gomez-465112692
+                -->
+            </section>
+
+            <section id="button-row">
+                <button type="button" id="btn-paint">Paint</button>
+                <button type="button" id="btn-fill" data-state-change="no">Fill</button>
+                <button type="button" id="btn-rect">Rect</button>
+                <button type="button" id="btn-line">Line</button>
+                <button type="button" id="btn-freeform">Freeform</button>
+                <button type="button" id="btn-erase">Erase</button>
+                <button type="button" id="btn-delstroke">DelStroke</button>
+                <button type="button" id="btn-undo" data-state-change="no" disabled>Undo</button>
+                <button type="button" id="btn-redo" data-state-change="no" disabled>Redo</button>
+                <button type="button" id="btn-sticker" data-state-change="no">Sticker</button>
+                <input type="color" id="in-color">
+                <label for="in-color">Color</label>
+                <button type="button" id="btn-save" data-state-change="no">Save</button>
+            </section>
+        </main>
+
+        <footer>
+            <p>Portions of this page © 2019 Austin Jenchi</p>
+            <p>Other attributions cited in page source</p>
+            <p>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">
+                    <img alt="CC BY-SA 4.0"
+                    src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png">
+                </a>
+            </p>
+        </footer>
+    </body>
+</html>
